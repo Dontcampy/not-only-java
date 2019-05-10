@@ -1,6 +1,7 @@
 package EffectiveJava.ej11
 
 import EffectiveJava.ej10.PhoneNumber
+import com.google.common.base.Objects
 import java.lang.IllegalArgumentException
 
 /**
@@ -40,17 +41,32 @@ class GoodPhoneNumber(areaCode: Int, prefix: Int, lineNum: Int) {
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == this)
+        if (other === this)
+            // use "other == this" will result in a StackOverflowError, at kotlin.jvm.internal.Intrinsics.areEqual(Intrinsics.java:153)
+            // https://kotlinlang.org/docs/reference/equality.html
             return true
         if (other !is GoodPhoneNumber)
             return false
         return other.lineNum == lineNum && other.prefix == prefix && other.areaCode == areaCode
     }
 
+//    override fun hashCode(): Int {
+//        var result = areaCode.hashCode()
+//        result = 31 * result + prefix.hashCode()
+//        result = 31 * result + lineNum.hashCode()
+//        return result
+//    }
+    /**
+     * With Guava
+     */
+    private var hashCode: Int = 0
+
     override fun hashCode(): Int {
-        var result = areaCode.hashCode()
-        result = 31 * result + prefix.hashCode()
-        result = 31 * result + lineNum.hashCode()
+        // Lazy
+        var result = hashCode
+        if (result == 0) {
+            result = Objects.hashCode(areaCode, prefix, lineNum)
+        }
         return result
     }
 }
@@ -62,6 +78,6 @@ fun goodExample() {
 }
 
 fun main() {
-    negativeExample()
-    goodExample()
+    negativeExample() // null
+    goodExample() // Jenny
 }
